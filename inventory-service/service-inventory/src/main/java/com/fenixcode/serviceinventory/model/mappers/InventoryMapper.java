@@ -13,9 +13,9 @@ public interface InventoryMapper {
     InventoryMapper INSTANCE = Mappers.getMapper(InventoryMapper.class);
 
 
-    @Mapping(target="id",source ="idProduct")
+    @Mapping(target="code",source ="idProduct")
     ProductModel requestToModel(InventoryRequest inventoryRequest);
 
-    @Mapping(target="idProduct",source ="id")
+    @Mapping(target="idProduct",source ="code")
     InventoryResponse modelToResponse(ProductModel productModel);
 }

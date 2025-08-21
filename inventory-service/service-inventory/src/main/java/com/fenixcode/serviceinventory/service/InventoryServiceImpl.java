@@ -30,11 +30,13 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public Mono<InventoryResponse> getInventory(String code) {
-        return inventory.;
+        return inventory.findByCode(code)
+                .map(InventoryMapper.INSTANCE::modelToResponse);
     }
 
     @Override
     public Flux<InventoryResponse> getInventary() {
-        return null;
+        return inventory.findAll()
+                .map(InventoryMapper.INSTANCE::modelToResponse);
     }
 }
