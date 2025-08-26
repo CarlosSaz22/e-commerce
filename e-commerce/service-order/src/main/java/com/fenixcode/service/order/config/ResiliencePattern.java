@@ -34,7 +34,7 @@ public class ResiliencePattern {
     }
 
     @Bean
-    TimeLimiter servicesRateLimiter(TimeLimiterRegistry registry) {
+    TimeLimiter servicesTimeLimiter(TimeLimiterRegistry registry) {
         return registry.timeLimiter(BACKEND_IN);
     }
 }

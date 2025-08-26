@@ -4,7 +4,7 @@ spring:
   r2dbc:
     url: r2dbc:postgresql://localhost:5432/orderdb
     username: postgres
-    password: admin
+    password: 123456789
 
   liquibase:
     enabled: true
@@ -13,7 +13,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/orderdb
     driver-class-name: org.postgresql.Driver
     user: postgres
-    password: admin
+    password: 123456789
     #contexts: stable
 
 client-micro:
