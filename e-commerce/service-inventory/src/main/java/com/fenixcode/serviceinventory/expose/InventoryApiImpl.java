@@ -30,7 +30,8 @@ public class InventoryApiImpl implements InventoryApiDelegate {
 
     @Override
     public Flux<InventoryResponse> listInventory(ServerWebExchange exchange) {
-        return inventoryService.getInventary().delayElements(Duration.ofSeconds(5));
+        return inventoryService.getInventary();
+                //.delayElements(Duration.ofSeconds(5));
     }
 
     @Override

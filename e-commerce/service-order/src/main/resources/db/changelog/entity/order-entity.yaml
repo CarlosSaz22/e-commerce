@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-datable-order
+      author: Carlos
+      #context: desa,local
+      changes:
+        - createTable:
+            tableName: order_shop
+            #schemaName: service_order
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_order_shop
+              - column:
+                  name: code_product
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: date_order
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_order
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+

@@ -1,0 +1,67 @@
+
+
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/orderdb
+    username: postgres
+    password: admin
+
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/master.yaml
+    drop-first: false
+    url: jdbc:postgresql://localhost:5432/orderdb
+    driver-class-name: org.postgresql.Driver
+    user: postgres
+    password: admin
+    #contexts: stable
+
+client-micro:
+  micro-order:
+    base-url: http://localhost:8080/services-inventory
+
+resilience4j:
+  #1
+  retry:
+    configs:
+      default:
+        wait-duration: 3s #duracion entre reintentos
+        max-attempts: 4 #numero maximo de reintentos
+    instances:
+      microInventory:
+        base-config: default
+  #2
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 5 # Número de eventos que se consideran para calcular el porcentaje de fallos
+        failureRateThreshold: 50 # Equivale en porcentaje a 50%
+        permittedNumberOfCallsInHalfOpenState: 3 # Número de llamadas permitidas en estado semiabierto
+        waitDurationInOpenState: 5s # Duración en la que el circuito permanece en estado abierto
+        registerHealthIndicator: true # Habilita el indicador de salud
+    instances:
+      microInventory:
+        base-config: default
+  #3
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 5 #numero maximo de llamadas permitidas en un periodod
+        limit-refresh-period: 60s #periodo de tiempo en el que se reinicia el contador
+        timeout-duration: 3s #duracion de espera para obtener un permiso
+        register-health-indicator: true # Habilita el indicador de salud
+    instances:
+      microInventory:
+        base-config: default
+  #4
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 1s #duracion maxima de espera para una llamada
+        cancel-running-future: true #Cancela la llamada en ejecucion
+    instances:
+      microInventory:
+        base-config: default
+
+
+
