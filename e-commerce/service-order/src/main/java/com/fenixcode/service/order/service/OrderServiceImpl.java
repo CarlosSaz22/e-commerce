@@ -78,10 +78,10 @@ public class OrderServiceImpl implements OrderService {
 
     private Mono<InventoryResponse> invokeServices(OrderModel value) {
         return inventoryApi.getInventory(value.getCodeProduct())
-                //.transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
+                .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
                 //.transformDeferred(RetryOperator.of(retry))
                 //.transformDeferred(RateLimiterOperator.of(rateLimiter))
-                .transformDeferred(TimeLimiterOperator.of(timeLimiter))
+                //.transformDeferred(TimeLimiterOperator.of(timeLimiter))
                 .onErrorResume(CallNotPermittedException.class,e->fallBack());
     }
 

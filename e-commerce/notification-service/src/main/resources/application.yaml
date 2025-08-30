@@ -3,3 +3,18 @@ spring:
     name: notification-service
 server:
   port: 8082
+
+management:
+  endpoints:
+    web:
+      base-path: '/services-notify/actuator'
+      exposure:
+        include: "*"
+  health:
+    show-details: always
+    probes:
+      enabled: true
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true

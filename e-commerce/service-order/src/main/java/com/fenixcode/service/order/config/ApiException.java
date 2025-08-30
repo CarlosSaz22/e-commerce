@@ -1,4 +1,4 @@
-package com.codearqui.serviceorder.config;
+package com.fenixcode.service.order.config;
 
 import lombok.Builder;
 import lombok.Getter;

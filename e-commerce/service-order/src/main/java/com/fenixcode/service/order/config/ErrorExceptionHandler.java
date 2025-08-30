@@ -1,8 +1,9 @@
-package com.codearqui.serviceorder.config;
+package com.fenixcode.service.order.config;
 
-import com.codearqui.serviceorder.model.dto.ErrorException;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fenixcode.service.order.model.dto.ErrorException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
