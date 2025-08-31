@@ -1,0 +1,93 @@
+#Deploy Database PostgreSQL
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deploy
+  labels:
+    app: postgres
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: postgres
+        version: v1
+    spec:
+      containers:
+        - name: postgresql
+          image: postgres:latest
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_PASSWORD
+              value: "123456789"
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: postgres-storage
+          emptyDir: {}
+        - name: postgres-init-scripts
+          configMap:
+            name: postgres-init-scripts
+
+---
+#Deploy app services-order
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: services-order-deploy
+  labels:
+    app: services-order
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: services-order
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: services-order
+        version: v1
+    spec:
+      containers:
+        - name: services-order
+          image: franciscocy97/service-order:1.0
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+          env:
+            - name: SPRING_CONFIG_LOCATION
+              value: file:/config/services-order-config.yml
+            - name: MICRO_INVENTORY_URL
+              valueFrom:
+                secretKeyRef:
+                  name: services-secrets
+                  key: url-micro-inventory
+          livenessProbe:
+            httpGet:
+              path: /services-order/actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /services-order/actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 5
+      volumes:
+        - name: config-volume
+          configMap:
+            name: services-order-config
