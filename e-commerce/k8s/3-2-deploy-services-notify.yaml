@@ -1,0 +1,93 @@
+#Deploy Database MongoDb
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deploy
+  labels:
+    app: mongo
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: mongo
+        version: v1
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:latest
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: root
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: '123456789'
+          volumeMounts:
+            - name: mongo-init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            requests:
+              memory: "100Mi"
+              cpu: "70m"
+            limits:
+              memory: "300Mi"
+              cpu: "200m"
+      volumes:
+        - name: mongo-init-scripts
+          configMap:
+            name: mongo-init-scripts
+
+---
+#Deploy app services-notify
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: services-notify-deploy
+  labels:
+    app: services-notify
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: services-notify
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: services-notify
+        version: v1
+    spec:
+      containers:
+        - name: services-notify
+          image: carlossaz22/micro-notify:1.0
+          ports:
+            - containerPort: 8082
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+          env:
+            - name: SPRING_CONFIG_LOCATION
+              value: file:/config/services-notify-config.yml
+          livenessProbe:
+            httpGet:
+              path: /services-notify/actuator/health/liveness
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /services-notify/actuator/health/readiness
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: config-volume
+          configMap:
+            name: services-notify-config

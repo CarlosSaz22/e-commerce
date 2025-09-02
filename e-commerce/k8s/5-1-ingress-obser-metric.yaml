@@ -1,0 +1,135 @@
+# Ingress for Grafana
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  namespace: obs-mon
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: grafana.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana-services
+                port:
+                  number: 3000
+
+---
+# Ingress for Jaeger
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jaeger-ingress
+  namespace: obs-mon
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: jaeger.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jaeger-service
+                port:
+                  number: 16686
+
+---
+# Ingress for elasticsearch
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: elasticsearch-ingress
+  namespace: obs-mon
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: elasticsearch.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: elasticsearch-service
+                port:
+                  number: 9200
+
+---
+# Ingress for Kibana
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+ name: kibana-ingress
+ namespace: obs-mon
+ annotations:
+   nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+ ingressClassName: nginx
+ rules:
+   - host: kibana.local
+     http:
+       paths:
+         - path: /
+           pathType: Prefix
+           backend:
+             service:
+               name: kibana-service
+               port:
+                 number: 5601
+
+# ---
+# # Ingress for Kafka Control Center
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+  # name: control-center-ingress
+  # namespace: obs-mon
+  # annotations:
+    # nginx.ingress.kubernetes.io/rewrite-target: /
+# spec:
+  # ingressClassName: nginx
+  # rules:
+    # - host: control-center.local
+      # http:
+        # paths:
+          # - path: /
+            # pathType: Prefix
+            # backend:
+              # service:
+                # name: control-center-service
+                # port:
+                  # number: 9021
+
+---
+# Ingress for Kafka UI
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kafka-ui-ingress
+  namespace: obs-mon
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kafka-ui.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kafka-ui-service
+                port:
+                  number: 9021

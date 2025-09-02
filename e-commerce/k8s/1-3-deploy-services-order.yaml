@@ -61,7 +61,7 @@ spec:
     spec:
       containers:
         - name: services-order
-          image: franciscocy97/service-order:1.0
+          image: carlossaz22/service-order:1.0
           ports:
             - containerPort: 8081
           volumeMounts:

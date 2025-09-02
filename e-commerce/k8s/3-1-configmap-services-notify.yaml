@@ -1,0 +1,70 @@
+#Configmap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-init-scripts
+data:
+  init.js: |
+    // Conexión y creación de la base de datos
+    db = db.getSiblingDB('db_notify');
+
+    // Creación de la colección 'notify_orders'
+    db.createCollection('notify_orders');
+
+---
+#Configmap services Notify
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: services-notify-config
+data:
+  services-notify-config.yml: |
+    spring:
+      application:
+        name: servicesservice Notify
+      kafka:
+        bootstrap-servers: kafka-kraft-service.obs-mon:9092
+        consumer:
+          group-id: services-order
+          key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+          value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      data:
+        mongodb:
+          uri: mongodb://root:123456789@mongo-services:27017/
+          database: db_notify
+
+    management:
+      tracing:
+        sampling:
+          probability: 1.0
+      endpoints:
+        web:
+          base-path: '/services-notify/actuator'
+          exposure:
+            include: "*"
+      endpoint:
+        health:
+          show-details: always
+          probes:
+            enabled: true
+      health:
+        livenessState:
+          enabled: true
+        readinessState:
+          enabled: true
+
+    otel:
+      traces:
+        exporter: otlp #otlp / zipkin / console / logging-otlp / none
+      metrics:
+        exporter: none #otlp / prometheus / none
+      logs:
+        exporter: none #otlp / console / logging-otlp / none
+      exporter:
+        otlp:
+          traces:
+            protocol: grpc
+            endpoint: http://jaeger-collector.istio-system:4317 #http://jaeger-service.obs-mon:4317
+
+    server:
+      port: 8082

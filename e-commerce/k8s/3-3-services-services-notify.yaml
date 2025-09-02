@@ -1,0 +1,32 @@
+# Services of deploy mongodb
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-services
+  labels:
+    app: mongo
+spec:
+  selector:
+    app: mongo
+  ports:
+    - name: tcp-mongo
+      protocol: TCP
+      port: 27017
+      targetPort: 27017
+
+---
+# Services of deploy services notify
+apiVersion: v1
+kind: Service
+metadata:
+  name: services-notify-services
+  labels:
+    app: services-notify
+spec:
+  selector:
+    app: services-notify
+  ports:
+    - name: tcp-services-notify
+      protocol: TCP
+      port: 8082
+      targetPort: 8082

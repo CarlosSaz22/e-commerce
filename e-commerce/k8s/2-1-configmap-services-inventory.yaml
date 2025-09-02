@@ -71,7 +71,7 @@ data:
         otlp:
           traces:
             protocol: grpc
-            endpoint: http://jaeger-service.obs-mon:4317
+            endpoint: http://jaeger-collector.istio-system:4317 #http://jaeger-service.obs-mon:4317
 
     server:
       port: 8080

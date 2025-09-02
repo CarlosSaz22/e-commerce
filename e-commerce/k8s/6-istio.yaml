@@ -1,0 +1,265 @@
+# Configuración de mTLS a nivel de namespace
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: default
+spec:
+  mtls:
+    mode: STRICT  # Habilita mTLS estricto para todo el namespace
+
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: obs-mon
+  namespace: obs-mon
+spec:
+  mtls:
+    mode: STRICT
+
+---
+kind: Sidecar
+apiVersion: networking.istio.io/v1
+metadata:
+  name: services-inventory-deploy
+  namespace: default
+  #labels:
+    #kiali_wizard: Sidecar
+spec:
+  workloadSelector:
+    labels:
+      app: services-inventory
+      version: v1
+  egress:
+  - hosts:
+    - istio-system/*
+    - obs-mon/*
+    - default/mysql-services.default.svc.cluster.local
+
+---
+
+kind: Sidecar
+apiVersion: networking.istio.io/v1
+metadata:
+  name: services-order-deploy
+  namespace: default
+  #labels:
+    #kiali_wizard: Sidecar
+spec:
+  workloadSelector:
+    labels:
+      app: services-order
+      version: v1
+  egress:
+  - hosts:
+    - istio-system/*
+    - default/postgres-service.default.svc.cluster.local
+    - obs-mon/*
+
+---
+
+kind: Sidecar
+apiVersion: networking.istio.io/v1
+metadata:
+  name: mysql-deploy
+  namespace: default
+  #labels:
+    #kiali_wizard: Sidecar
+spec:
+  workloadSelector:
+    labels:
+      app: mysql
+      version: v1
+  egress:
+  - hosts:
+    - istio-system/*
+
+---
+
+kind: Sidecar
+apiVersion: networking.istio.io/v1
+metadata:
+  name: postgres-deploy
+  namespace: default
+  #labels:
+    #kiali_wizard: Sidecar
+spec:
+  workloadSelector:
+    labels:
+      app: postgres
+      version: v1
+  egress:
+  - hosts:
+    - istio-system/*
+
+---
+# Gateway para el tráfico Interno
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: servicesservices-gateway
+spec:
+  selector:
+    istio: ingressgateway  # Usa el Ingress Gateway de Istio por defecto
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    #- "servicesservices.example.com"  # Define el host para acceso externo
+    - "a92880ff397644dc2889addc8f289ac3-1420701060.us-east-2.elb.amazonaws.com"
+    #- "a57582aa9a6fb47619e49080105907e8-586718548.us-east-2.elb.amazonaws.com"
+    #- "a4dedb23b179d44378562aaba659acc2-655934875.us-east-2.elb.amazonaws.com"
+
+---
+# VirtualService único para los tres servicesservicios
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: servicesservices-virtualservice
+spec:
+  hosts:
+  #- "servicesservices.example.com"  # Apunta al mismo host definido en el Gateway
+  - "a92880ff397644dc2889addc8f289ac3-1420701060.us-east-2.elb.amazonaws.com"
+  #- "a4dedb23b179d44378562aaba659acc2-655934875.us-east-2.elb.amazonaws.com"
+  #- "a57582aa9a6fb47619e49080105907e8-586718548.us-east-2.elb.amazonaws.com"
+  #- services-order-services.default.svc.cluster.local
+  #- services-inventory-services.default.svc.cluster.local
+  #- services-notify-services.default.svc.cluster.local
+  gateways:
+  - servicesservices-gateway
+  #- mesh
+  http:
+  - match:
+      - uri:
+          prefix: "/services-order"  # Ruta para el servicio services-order
+    route:
+    - destination:
+        host: services-order-services.default.svc.cluster.local    ## name-services.name-namespace.svc.cluster.local
+        port:
+          number: 8081
+      weight: 100
+    # - destination:
+        # host: services-order-services.default.svc.cluster.local
+        # subset: v2
+        # port:
+          # number: 8080
+      # weight: 90
+    timeout: 30s  # Tiempo máximo para completar una solicitud al servicesservicio
+    retries:
+      attempts: 3  # Número de intentos de reintento si la solicitud falla
+      perTryTimeout: 10s  # Tiempo máximo permitido para cada intento
+  - match:
+      - uri:
+          prefix: "/services-inventory"  # Ruta para el servicio services-inventory
+    route:
+    - destination:
+        host: services-inventory-services.default.svc.cluster.local
+        port:
+          number: 8080
+      weight: 100
+  - match:
+      - uri:
+          prefix: "/services-notify"  # Ruta para el servicio services-notify
+    route:
+    - destination:
+        host: services-notify-services.default.svc.cluster.local
+        port:
+          number: 8082
+      weight: 100
+  - match:
+      - uri:
+          prefix: "/kiali"
+    route:
+    - destination:
+        host: kiali.istio-system.svc.cluster.local
+        port:
+          number: 20001
+
+---
+# DestinationRule para services-order con Circuit Breaker
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: services-order-destination
+spec:
+  host: services-order-services.default.svc.cluster.local
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN # distribuye equitativamente las instancias
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http2MaxRequests: 50
+        maxRequestsPerConnection: 1  # Límite de solicitudes por conexión
+    outlierDetection:  # Configuración de Circuit Breaker
+      consecutive5xxErrors: 3  # Rompe el circuito después de 3 errores 5xx
+      interval: 10s  # Intervalo para verificar errores
+      baseEjectionTime: 15s  # Tiempo de expulsión inicial de instancias con errores
+      maxEjectionPercent: 50  # Expulsa hasta el 50% de las instancias si fallan
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    # - name: v2
+      # labels:
+        # version: v2
+
+---
+# DestinationRule para services-inventory con Circuit Breaker
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: services-inventory-destination
+spec:
+  host: services-inventory-services.default.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      http:
+        http2MaxRequests: 50
+        maxRequestsPerConnection: 1
+    outlierDetection:
+      consecutive5xxErrors: 3
+      interval: 10s
+      baseEjectionTime: 15s
+      maxEjectionPercent: 50
+
+---
+# DestinationRule para services-notify con Circuit Breaker
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: services-notify-destination
+spec:
+  host: services-notify-services.default.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      http:
+        http2MaxRequests: 50
+        maxRequestsPerConnection: 1
+    outlierDetection:
+      consecutive5xxErrors: 3
+      interval: 10s
+      baseEjectionTime: 15s
+      maxEjectionPercent: 50
+
+
+---
+## 5. ServiceEntry para control de Egress
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: external-apis
+  namespace: default
+spec:
+  hosts:
+    - "api.external-service.com"
+  ports:
+    - number: 443
+      name: https
+      protocol: HTTPS
+  resolution: DNS
+  location: MESH_EXTERNAL
