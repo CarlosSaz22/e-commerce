@@ -109,9 +109,7 @@ spec:
       protocol: HTTP
     hosts:
     #- "servicesservices.example.com"  # Define el host para acceso externo
-    - "a92880ff397644dc2889addc8f289ac3-1420701060.us-east-2.elb.amazonaws.com"
-    #- "a57582aa9a6fb47619e49080105907e8-586718548.us-east-2.elb.amazonaws.com"
-    #- "a4dedb23b179d44378562aaba659acc2-655934875.us-east-2.elb.amazonaws.com"
+    - "a7a22f8c6a19940b9b640557ccb8dd14-1209049048.us-east-1.elb.amazonaws.com"
 
 ---
 # VirtualService único para los tres servicesservicios
@@ -122,9 +120,7 @@ metadata:
 spec:
   hosts:
   #- "servicesservices.example.com"  # Apunta al mismo host definido en el Gateway
-  - "a92880ff397644dc2889addc8f289ac3-1420701060.us-east-2.elb.amazonaws.com"
-  #- "a4dedb23b179d44378562aaba659acc2-655934875.us-east-2.elb.amazonaws.com"
-  #- "a57582aa9a6fb47619e49080105907e8-586718548.us-east-2.elb.amazonaws.com"
+  - "a7a22f8c6a19940b9b640557ccb8dd14-1209049048.us-east-1.elb.amazonaws.com"
   #- services-order-services.default.svc.cluster.local
   #- services-inventory-services.default.svc.cluster.local
   #- services-notify-services.default.svc.cluster.local
