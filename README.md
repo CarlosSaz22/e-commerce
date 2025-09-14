@@ -29,6 +29,7 @@ Arquitectura extensible: fácilmente adaptable para nuevos microservicios o inte
 Control y monitoreo centralizados: dashboards, logging y tracing unificados para análisis de performance y troubleshooting.
 
 🛠️ Tecnologías utilizadas
+
 Java 21
 
 Spring Boot 3 + Spring WebFlux
